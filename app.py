@@ -64,7 +64,13 @@ def home():
         print(f"Token AUD: {token_aud}")
         print(f"Expected AUD: {EXPECTED_AUD}")
         
-        if not token_aud or token_aud != EXPECTED_AUD:
+        # Handle both string and array audiences
+        if isinstance(token_aud, list):
+            valid_aud = EXPECTED_AUD in token_aud
+        else:
+            valid_aud = token_aud == EXPECTED_AUD
+
+        if not token_aud or not valid_aud:
             return render_template('home.html', error="Invalid audience claim")
         
         # Extract email from the token
