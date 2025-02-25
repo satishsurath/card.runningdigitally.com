@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, make_response
 from jose import jwt
 import os
 from dotenv import load_dotenv
@@ -317,6 +317,67 @@ def preview_card():
     
     except Exception as e:
         return render_template('preview_card.html', error=str(e))
+
+@app.route('/download-vcf')
+def download_vcf():
+    token = request.headers.get('Cf-Access-Jwt-Assertion')
+    if FLASK_ENV == 'development' and not token:
+        token = DEV_MODE_TOKEN
+    
+    try:
+        decoded = jwt.decode(
+            token,
+            'dummy-key',
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": False,
+                "verify_iat": False,
+                "verify_nbf": False,
+                "verify_iss": False,
+                "verify_sub": False,
+                "verify_jti": False,
+                "verify_at_hash": False,
+            }
+        )
+        
+        token_aud = decoded.get('aud')
+        if isinstance(token_aud, list):
+            valid_aud = EXPECTED_AUD in token_aud
+        else:
+            valid_aud = token_aud == EXPECTED_AUD
+
+        if not token_aud or not valid_aud:
+            return "Unauthorized", 403
+
+        email = decoded.get('email', 'No email found')
+        user = get_or_create_user(email)
+        
+        if not user:
+            return "User not found", 404
+
+        # Generate VCF content
+        vcf_content = f"""BEGIN:VCARD
+VERSION:3.0
+FN:{user.full_name}
+N:{user.full_name};;;;
+TITLE:{user.title}
+ORG:{user.company}
+TEL;TYPE=WORK,VOICE:{user.phone}
+URL:{user.website}
+ADR;TYPE=WORK:;;{user.address};;;;
+NOTE:{user.notes}
+EMAIL:{user.email}
+END:VCARD"""
+        
+        # Create response with VCF content
+        response = make_response(vcf_content)
+        response.headers['Content-Type'] = 'text/vcard'
+        response.headers['Content-Disposition'] = f'attachment; filename="{user.full_name.replace(" ", "_")}.vcf"'
+        return response
+        
+    except Exception as e:
+        return str(e), 400
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
