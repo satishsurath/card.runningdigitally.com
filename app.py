@@ -183,5 +183,48 @@ def update_profile():
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
+@app.route('/edit-card')
+def edit_card():
+    token = request.headers.get('Cf-Access-Jwt-Assertion')
+    if FLASK_ENV == 'development' and not token:
+        token = DEV_MODE_TOKEN
+    
+    if not token:
+        return render_template('edit_card.html')
+    
+    try:
+        decoded = jwt.decode(
+            token,
+            'dummy-key',
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": False,
+                "verify_iat": False,
+                "verify_nbf": False,
+                "verify_iss": False,
+                "verify_sub": False,
+                "verify_jti": False,
+                "verify_at_hash": False,
+            }
+        )
+        
+        token_aud = decoded.get('aud')
+        if isinstance(token_aud, list):
+            valid_aud = EXPECTED_AUD in token_aud
+        else:
+            valid_aud = token_aud == EXPECTED_AUD
+
+        if not token_aud or not valid_aud:
+            return render_template('edit_card.html', error="Invalid audience claim")
+        
+        email = decoded.get('email', 'No email found')
+        get_or_create_user(email)
+        
+        return render_template('edit_card.html', email=email)
+    
+    except Exception as e:
+        return render_template('edit_card.html', error=str(e))
+
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
