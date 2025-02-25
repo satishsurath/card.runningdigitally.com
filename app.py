@@ -3,6 +3,9 @@ from jose import jwt
 import os
 from dotenv import load_dotenv
 from models import init_db, get_or_create_user, User, db
+import qrcode
+import base64
+from io import BytesIO
 
 load_dotenv()
 
@@ -378,6 +381,84 @@ END:VCARD"""
         
     except Exception as e:
         return str(e), 400
+
+@app.route('/qr-code')
+def qr_code():
+    token = request.headers.get('Cf-Access-Jwt-Assertion')
+    if FLASK_ENV == 'development' and not token:
+        token = DEV_MODE_TOKEN
+    
+    if not token:
+        return render_template('qr_code.html')
+    
+    try:
+        decoded = jwt.decode(
+            token,
+            'dummy-key',
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": False,
+                "verify_iat": False,
+                "verify_nbf": False,
+                "verify_iss": False,
+                "verify_sub": False,
+                "verify_jti": False,
+                "verify_at_hash": False,
+            }
+        )
+        
+        token_aud = decoded.get('aud')
+        if isinstance(token_aud, list):
+            valid_aud = EXPECTED_AUD in token_aud
+        else:
+            valid_aud = token_aud == EXPECTED_AUD
+
+        if not token_aud or not valid_aud:
+            return render_template('qr_code.html', error="Invalid audience claim")
+
+        email = decoded.get('email', 'No email found')
+        user = get_or_create_user(email)
+        
+        if not user:
+            return render_template('qr_code.html', error="User not found")
+        
+        # Generate VCF content
+        vcf_content = f"""BEGIN:VCARD
+VERSION:3.0
+FN:{user.full_name}
+N:{user.full_name};;;;
+TITLE:{user.title or ''}
+ORG:{user.company or ''}
+TEL;TYPE=WORK,VOICE:{user.phone or ''}
+URL:{user.website or ''}
+ADR;TYPE=WORK:;;{user.address or ''};;;;
+NOTE:{user.notes or ''}
+EMAIL:{user.email}
+END:VCARD"""
+        
+        # Generate QR code with VCF content directly
+        qr = qrcode.QRCode(
+            version=None,  # Will automatically determine size
+            error_correction=qrcode.constants.ERROR_CORRECT_L,
+            box_size=10,
+            border=4,
+        )
+        qr.add_data(vcf_content)
+        qr.make(fit=True)
+        
+        # Create QR code image
+        img = qr.make_image(fill_color="black", back_color="white")
+        
+        # Convert image to base64 for embedding in HTML
+        buffered = BytesIO()
+        img.save(buffered, format="PNG")
+        qr_image = base64.b64encode(buffered.getvalue()).decode()
+            
+        return render_template('qr_code.html', email=email, user=user, qr_image=qr_image)
+    
+    except Exception as e:
+        return render_template('qr_code.html', error=str(e))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)

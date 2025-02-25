@@ -1,0 +1,32 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto p-6">
+    <div class="text-center mb-8">
+        <h1 class="text-2xl font-bold text-gray-800 mb-4">Scan to Add Contact</h1>
+        <p class="text-gray-600">Scan this QR code with your phone's camera to download the contact card</p>
+    </div>
+
+    {% if error %}
+        <div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative" role="alert">
+            <span class="block sm:inline">{{ error }}</span>
+        </div>
+    {% else %}
+        <div class="bg-white rounded-lg shadow-2xl p-6">
+            {% if qr_image %}
+                <div class="flex justify-center mb-6">
+                    <img src="data:image/png;base64,{{ qr_image }}" alt="QR Code" class="max-w-full h-auto">
+                </div>
+                <div class="text-center text-sm text-gray-600">
+                    <p class="mb-2">Contact: {{ user.full_name }}</p>
+                    <p>{{ user.title }}{% if user.company %} at {{ user.company }}{% endif %}</p>
+                </div>
+            {% else %}
+                <div class="text-center text-gray-600">
+                    <p>Please log in to generate your QR code.</p>
+                </div>
+            {% endif %}
+        </div>
+    {% endif %}
+</div>
+{% endblock %}
