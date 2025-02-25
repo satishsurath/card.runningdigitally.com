@@ -98,8 +98,22 @@ def get_profile():
         token = DEV_MODE_TOKEN
     
     try:
-        decoded = jwt.decode(token, 'dummy-key', options={"verify_signature": False})
-        
+        decoded = jwt.decode(
+            token,
+            'dummy-key',
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": False,
+                "verify_iat": False,
+                "verify_nbf": False,
+                "verify_iss": False,
+                "verify_sub": False,
+                "verify_jti": False,
+                "verify_at_hash": False,
+            }
+        )
+                
         # Validate audience
         token_aud = decoded.get('aud')
         if isinstance(token_aud, list):
@@ -125,8 +139,22 @@ def update_profile():
         token = DEV_MODE_TOKEN
     
     try:
-        decoded = jwt.decode(token, 'dummy-key', options={"verify_signature": False})
-        
+        decoded = jwt.decode(
+            token,
+            'dummy-key',
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": False,
+                "verify_iat": False,
+                "verify_nbf": False,
+                "verify_iss": False,
+                "verify_sub": False,
+                "verify_jti": False,
+                "verify_at_hash": False,
+            }
+        )
+                
         # Validate audience
         token_aud = decoded.get('aud')
         if isinstance(token_aud, list):
