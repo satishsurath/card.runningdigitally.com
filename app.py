@@ -2,7 +2,7 @@ from flask import Flask, request, jsonify, render_template
 from jose import jwt
 import os
 from dotenv import load_dotenv
-from models import init_db, get_or_create_user
+from models import init_db, get_or_create_user, User, db
 
 load_dotenv()
 
@@ -90,6 +90,48 @@ def home():
     except Exception as e:
         print(f"Error decoding token: {str(e)}")
         return render_template('home.html', error=str(e))
+
+@app.route('/api/profile', methods=['GET'])
+def get_profile():
+    token = request.headers.get('Cf-Access-Jwt-Assertion')
+    if FLASK_ENV == 'development' and not token:
+        token = DEV_MODE_TOKEN
+    
+    try:
+        decoded = jwt.decode(token, 'dummy-key', options={"verify_signature": False})
+        email = decoded.get('email')
+        user = User.query.filter_by(email=email).first()
+        if user:
+            return jsonify(user.to_dict())
+        return jsonify({"error": "User not found"}), 404
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
+@app.route('/api/profile', methods=['PUT'])
+def update_profile():
+    token = request.headers.get('Cf-Access-Jwt-Assertion')
+    if FLASK_ENV == 'development' and not token:
+        token = DEV_MODE_TOKEN
+    
+    try:
+        decoded = jwt.decode(token, 'dummy-key', options={"verify_signature": False})
+        email = decoded.get('email')
+        user = User.query.filter_by(email=email).first()
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+        
+        data = request.get_json()
+        updateable_fields = ['full_name', 'phone', 'title', 'company', 'website', 'address', 'notes']
+        
+        for field in updateable_fields:
+            if field in data:
+                setattr(user, field, data[field])
+        
+        db.session.commit()
+        return jsonify(user.to_dict())
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
