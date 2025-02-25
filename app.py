@@ -260,10 +260,13 @@ def preview_card():
 
         if not token_aud or not valid_aud:
             return render_template('preview_card.html', error="Invalid audience claim")
-        
+
         email = decoded.get('email', 'No email found')
-        user = User.query.filter_by(email=email).first()
+        user = get_or_create_user(email)  # Make sure we have a user record
         
+        if not user:
+            return render_template('preview_card.html', error="User not found")
+            
         return render_template('preview_card.html', email=email, user=user)
     
     except Exception as e:
