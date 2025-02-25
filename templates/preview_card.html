@@ -66,57 +66,42 @@
     <script>
         async function loadPreviewCard() {
             try {
-                console.log('Fetching preview card data...');
                 const response = await fetch('/api/preview-card');
-                console.log('Response status:', response.status);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
                 
                 const data = await response.json();
-                console.log('Received data:', data);
+                const user = data.user;
 
-                if (response.ok && data.user) {
-                    const user = data.user;
-                    console.log('Processing user data:', user);
+                // Always set the content, using empty string as fallback
+                document.getElementById('full-name').textContent = user.full_name || '';
+                document.getElementById('title').textContent = user.title || '';
+                document.getElementById('company').textContent = user.company || '';
 
-                    // Update text content
-                    document.getElementById('full-name').textContent = user.full_name || '';
-                    document.getElementById('title').textContent = user.title || '';
-                    document.getElementById('company').textContent = user.company || '';
+                // Only show sections if they have content
+                const sections = {
+                    'phone': ['phone-section', 'phone-text'],
+                    'website': ['website-section', 'website-text'],
+                    'address': ['address-section', 'address-text'],
+                    'notes': ['notes-section', 'notes-text']
+                };
 
-                    // Update conditional sections
-                    if (user.phone) {
-                        document.getElementById('phone-section').classList.remove('hidden');
-                        document.getElementById('phone-text').textContent = user.phone;
+                for (const [field, [sectionId, textId]] of Object.entries(sections)) {
+                    if (user[field]) {
+                        document.getElementById(sectionId).classList.remove('hidden');
+                        document.getElementById(textId).textContent = user[field];
                     }
-
-                    if (user.website) {
-                        document.getElementById('website-section').classList.remove('hidden');
-                        document.getElementById('website-text').textContent = user.website;
-                    }
-
-                    if (user.address) {
-                        document.getElementById('address-section').classList.remove('hidden');
-                        document.getElementById('address-text').textContent = user.address;
-                    }
-
-                    if (user.notes) {
-                        document.getElementById('notes-section').classList.remove('hidden');
-                        document.getElementById('notes-text').textContent = user.notes;
-                    }
-                } else {
-                    const errorDiv = document.getElementById('error-message');
-                    errorDiv.textContent = data.error || 'Failed to load card data';
-                    errorDiv.classList.remove('hidden');
-                    console.error('Error in response:', data);
                 }
             } catch (error) {
-                console.error('Error loading preview card:', error);
-                const errorDiv = document.getElementById('error-message');
-                errorDiv.textContent = 'Error loading card data: ' + error.message;
-                errorDiv.classList.remove('hidden');
+                console.error('Error:', error);
+                document.getElementById('error-message').textContent = error.message;
+                document.getElementById('error-message').classList.remove('hidden');
             }
         }
 
-        document.addEventListener('DOMContentLoaded', loadPreviewCard);
+        // Call loadPreviewCard immediately without waiting for DOMContentLoaded
+        loadPreviewCard();
     </script>
 </div>
 {% endblock %}
