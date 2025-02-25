@@ -226,6 +226,52 @@ def edit_card():
     except Exception as e:
         return render_template('edit_card.html', error=str(e))
 
+@app.route('/api/preview-card')
+def preview_card_data():
+    token = request.headers.get('Cf-Access-Jwt-Assertion')
+    if FLASK_ENV == 'development' and not token:
+        token = DEV_MODE_TOKEN
+    
+    try:
+        decoded = jwt.decode(
+            token,
+            'dummy-key',
+            options={
+                "verify_signature": False,
+                "verify_aud": False,
+                "verify_exp": False,
+                "verify_iat": False,
+                "verify_nbf": False,
+                "verify_iss": False,
+                "verify_sub": False,
+                "verify_jti": False,
+                "verify_at_hash": False,
+            }
+        )
+        
+        token_aud = decoded.get('aud')
+        if isinstance(token_aud, list):
+            valid_aud = EXPECTED_AUD in token_aud
+        else:
+            valid_aud = token_aud == EXPECTED_AUD
+
+        if not token_aud or not valid_aud:
+            return jsonify({"error": "Invalid audience claim"}), 403
+
+        email = decoded.get('email', 'No email found')
+        user = get_or_create_user(email)
+        
+        if not user:
+            return jsonify({"error": "User not found"}), 404
+            
+        return jsonify({
+            "email": email,
+            "user": user.to_dict()
+        })
+    
+    except Exception as e:
+        return jsonify({"error": str(e)}), 400
+
 @app.route('/preview-card')
 def preview_card():
     token = request.headers.get('Cf-Access-Jwt-Assertion')
