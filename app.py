@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, render_template
 from jose import jwt
 import os
 from dotenv import load_dotenv
@@ -37,7 +37,7 @@ def home():
         print(f"Using development mode token: {token}")
     
     if not token:
-        return "No token provided", 401
+        return render_template('home.html')
     
     try:
         # Decode the JWT token without any verification
@@ -65,15 +65,15 @@ def home():
         print(f"Expected AUD: {EXPECTED_AUD}")
         
         if not token_aud or token_aud != EXPECTED_AUD:
-            return f"Invalid audience claim. Got: {token_aud}, Expected: {EXPECTED_AUD}", 403
+            return render_template('home.html', error="Invalid audience claim")
         
         # Extract email from the token
         email = decoded.get('email', 'No email found')
-        return f"Welcome {email}"
+        return render_template('home.html', email=email)
     
     except Exception as e:
         print(f"Error decoding token: {str(e)}")
-        return str(e), 401
+        return render_template('home.html', error=str(e))
 
 if __name__ == '__main__':
     app.run(host='0.0.0.0', port=8080, debug=True)
