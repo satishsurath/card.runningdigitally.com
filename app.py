@@ -2,10 +2,20 @@ from flask import Flask, request, jsonify, render_template
 from jose import jwt
 import os
 from dotenv import load_dotenv
+from models import init_db, get_or_create_user
 
 load_dotenv()
 
 app = Flask(__name__)
+
+# Ensure data directory exists
+data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
+os.makedirs(data_dir, exist_ok=True)
+
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = f'sqlite:///{os.path.join(data_dir, "users.db")}'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+init_db(app)
 
 # Configuration
 FLASK_ENV = os.getenv('FLASK_ENV', 'development')
@@ -23,8 +33,6 @@ DEV_MODE_TOKEN = jwt.encode(
     'dev-secret',
     algorithm='HS256'
 )
-
-print(f"Generated DEV_MODE_TOKEN: {DEV_MODE_TOKEN}")
 
 @app.route('/')
 def home():
@@ -73,8 +81,10 @@ def home():
         if not token_aud or not valid_aud:
             return render_template('home.html', error="Invalid audience claim")
         
-        # Extract email from the token
+        # Extract email from the token and store in database
         email = decoded.get('email', 'No email found')
+        get_or_create_user(email)
+        
         return render_template('home.html', email=email)
     
     except Exception as e:

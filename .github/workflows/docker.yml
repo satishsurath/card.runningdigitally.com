@@ -37,5 +37,6 @@ jobs:
           docker run -d --name card.runningdigitally.com \
             --restart always \
             --env-file=/home/satsur/.env.card.runningdigitally.com \
+            -v card_access_data:/app/data
             -p 8080:8080 \
             ghcr.io/${{ github.repository }}:latest
