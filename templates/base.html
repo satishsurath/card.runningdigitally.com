@@ -11,15 +11,34 @@
     <nav class="bg-white shadow-lg">
         <div class="max-w-6xl mx-auto px-4">
             <div class="flex justify-between items-center h-16">
-                <div class="flex items-center space-x-8">
+                <div class="flex items-center justify-between w-full">
                     <div class="text-xl font-semibold text-gray-800">
                         Running Digitally Card Access
                     </div>
+                    
+                    <!-- Mobile menu button -->
+                    <button id="mobile-menu-button" class="md:hidden inline-flex items-center justify-center p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-green-500">
+                        <span class="sr-only">Open main menu</span>
+                        <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                        </svg>
+                    </button>
+
+                    <!-- Desktop menu -->
                     <div class="hidden md:flex space-x-4">
                         <a href="/" class="text-gray-600 hover:text-gray-900">Home</a>
                         <a href="/edit-card" class="text-gray-600 hover:text-gray-900">Edit Card</a>
                         <a href="/preview-card" class="text-gray-600 hover:text-gray-900">Preview Card</a>
                     </div>
+                </div>
+            </div>
+
+            <!-- Mobile menu -->
+            <div id="mobile-menu" class="hidden md:hidden pb-3">
+                <div class="flex flex-col space-y-2">
+                    <a href="/" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">Home</a>
+                    <a href="/edit-card" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">Edit Card</a>
+                    <a href="/preview-card" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">Preview Card</a>
                 </div>
             </div>
         </div>
@@ -28,5 +47,25 @@
         {% block content %}{% endblock %}
     </main>
     {% block scripts %}{% endblock %}
+
+    <!-- Base scripts -->
+    <script>
+        // Mobile menu toggle
+        const mobileMenuButton = document.getElementById('mobile-menu-button');
+        const mobileMenu = document.getElementById('mobile-menu');
+
+        mobileMenuButton.addEventListener('click', () => {
+            const isHidden = mobileMenu.classList.contains('hidden');
+            mobileMenu.classList.toggle('hidden');
+            
+            // Update button icon
+            const svg = mobileMenuButton.querySelector('svg');
+            if (isHidden) {
+                svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />';
+            } else {
+                svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />';
+            }
+        });
+    </script>
 </body>
 </html>
