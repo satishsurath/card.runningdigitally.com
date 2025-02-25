@@ -1,53 +1,71 @@
-# Flask JWT Token Display App
+# Digital Business Card Application
 
-This application displays the email address from Cloudflare Access JWT tokens.
+A web-based digital business card solution that lets users create, edit and share their contact information securely using QR codes authenticated securely via oAuth Providers.
 
-## Build and Run
+## Features
+
+- Secure authentication via oAuth Authentication Providers
+- Create and edit your digital business card
+- Preview your card in a clean, professional format
+- Generate QR codes for easy sharing
+- Download contact information as VCF (vCard) file
+- Protected access through Cloudflare Zero Trust
+
+## How to Access
+
+1. Visit https://card.runningdigitally.com/
+2. Authenticate using your oAuth Provider of choice
+3. Once logged in, you can:
+   - Edit your business card details
+   - Preview how others will see your card
+   - Generate a QR code for easy sharing
+   - Download your contact information as a VCF file
+
+## Technical Details
+
+### Built With
+- Flask (Python web framework)
+- SQLite database for user data storage
+- QR code generation for easy sharing
+- VCF (vCard) format support
+- Cloudflare Zero Trust for authentication
+
+### Local Development Setup
+
+1. Clone the repository
+2. Create and activate a virtual environment:
+   ```bash
+   python -m venv venv
+   source venv/bin/activate  # On Windows: venv\Scripts\activate
+   ```
+3. Install dependencies:
+   ```bash
+   pip install -r requirements.txt
+   ```
+4. Set up environment variables:
+   - Copy `.env.example` to `.env`
+   - Configure your Cloudflare Access settings
+
+### Docker Deployment
 
 ```bash
-docker build -t flask-jwt-app .
-docker run -p 8080:8080 flask-jwt-app
+docker build -t digital-business-card .
+docker run -p 8080:8080 digital-business-card
 ```
 
-## Cloudflare Zero Trust Setup
+## Cloudflare Zero Trust Configuration
 
-1. Go to Cloudflare Zero Trust Dashboard
-2. Navigate to Access -> Applications
-3. Create a new application
-4. Select "Self-hosted" 
-5. Configure the following:
-   - Application Name: Flask JWT App
-   - Session Duration: Your preferred duration
-   - Application Domain: Your application domain
-   - Add a policy to define who can access the application
+1. In Cloudflare Zero Trust Dashboard:
+   - Go to Access -> Applications
+   - Create a new "Self-hosted" application
+   - Set application domain to card.runningdigitally.com
+   - Configure access policies as needed
+2. Enable "Service Auth" in the application settings
+3. Note your Application Audience (AUD) tag
+4. Update your environment variables with the AUD tag
 
-### Configure Application Settings
-1. Go to the application settings
-2. Under "Zero Trust" settings, make sure "Service Auth" is enabled
-3. Note down the Application Audience (AUD) tag
+## Security
 
-### Set up Cloudflare Tunnel
-1. Install cloudflared
-2. Authenticate cloudflared:
-   ```bash
-   cloudflared login
-   ```
-3. Create a tunnel:
-   ```bash
-   cloudflared tunnel create flask-jwt-app
-   ```
-4. Configure the tunnel (create config.yml):
-   ```yaml
-   tunnel: <YOUR-TUNNEL-ID>
-   credentials-file: /root/.cloudflared/<YOUR-TUNNEL-ID>.json
-   ingress:
-     - hostname: your-app-domain.com
-       service: http://localhost:8080
-     - service: http_status:404
-   ```
-5. Run the tunnel:
-   ```bash
-   cloudflared tunnel run flask-jwt-app
-   ```
-
-The application will now be accessible through your Cloudflare Zero Trust domain and will display the email address of authenticated users.
+- All access is protected by Cloudflare Zero Trust
+- User data is stored securely in SQLite database
+- JWT token validation ensures secure authentication
