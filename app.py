@@ -99,6 +99,17 @@ def get_profile():
     
     try:
         decoded = jwt.decode(token, 'dummy-key', options={"verify_signature": False})
+        
+        # Validate audience
+        token_aud = decoded.get('aud')
+        if isinstance(token_aud, list):
+            valid_aud = EXPECTED_AUD in token_aud
+        else:
+            valid_aud = token_aud == EXPECTED_AUD
+
+        if not token_aud or not valid_aud:
+            return jsonify({"error": "Invalid audience"}), 403
+            
         email = decoded.get('email')
         user = User.query.filter_by(email=email).first()
         if user:
@@ -115,6 +126,17 @@ def update_profile():
     
     try:
         decoded = jwt.decode(token, 'dummy-key', options={"verify_signature": False})
+        
+        # Validate audience
+        token_aud = decoded.get('aud')
+        if isinstance(token_aud, list):
+            valid_aud = EXPECTED_AUD in token_aud
+        else:
+            valid_aud = token_aud == EXPECTED_AUD
+
+        if not token_aud or not valid_aud:
+            return jsonify({"error": "Invalid audience"}), 403
+            
         email = decoded.get('email')
         user = User.query.filter_by(email=email).first()
         
