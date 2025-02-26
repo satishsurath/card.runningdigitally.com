@@ -1,15 +1,26 @@
-from flask import Flask, request, jsonify, render_template, make_response
+from flask import Flask, request, jsonify, render_template, make_response, redirect, url_for, session
 from jose import jwt
 import os
+from flask_sqlalchemy import SQLAlchemy
 from dotenv import load_dotenv
 from models import init_db, get_or_create_user, User, db
 import qrcode
 import base64
 from io import BytesIO
+from flask_login import LoginManager, login_user, logout_user, login_required, current_user
+from requests_oauthlib import OAuth2Session
+import json
+import secrets
+import requests
 
 load_dotenv()
-
 app = Flask(__name__)
+
+#debug 
+print("Client Secret:", os.getenv("LINKEDIN_CLIENT_SECRET"))
+
+# Generate a secure secret key for the session
+app.secret_key = os.getenv('FLASK_SECRET_KEY', secrets.token_hex(16))
 
 # Ensure data directory exists
 data_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data')
@@ -22,418 +33,219 @@ init_db(app)
 
 # Configuration
 FLASK_ENV = os.getenv('FLASK_ENV', 'development')
-EXPECTED_AUD = os.getenv('CF_ACCESS_AUD', 'default-development-aud')
 
-print(f"Starting app with FLASK_ENV={FLASK_ENV}")
-print(f"Expected AUD configured as: {EXPECTED_AUD}")
+# LinkedIn OAuth Settings
+LINKEDIN_CLIENT_ID = os.getenv('LINKEDIN_CLIENT_ID', '')
+LINKEDIN_CLIENT_SECRET = os.getenv('LINKEDIN_CLIENT_SECRET', '')
+LINKEDIN_REDIRECT_URI = os.getenv('LINKEDIN_REDIRECT_URI', 'http://localhost:8080/callback')
+LINKEDIN_SCOPE = ['openid', 'profile', 'email']
+LINKEDIN_AUTHORIZATION_URL = 'https://www.linkedin.com/oauth/v2/authorization'
+LINKEDIN_TOKEN_URL = 'https://www.linkedin.com/oauth/v2/accessToken'
+LINKEDIN_USER_INFO_URL = 'https://api.linkedin.com/v2/userinfo'
 
-# Development mode mock token
-DEV_MODE_TOKEN = jwt.encode(
-    {
-        'email': 'dev@example.com',
-        'aud': EXPECTED_AUD
-    },
-    'dev-secret',
-    algorithm='HS256'
-)
+# Initialize Flask-Login
+login_manager = LoginManager()
+login_manager.init_app(app)
+login_manager.login_view = 'login'
+login_manager.login_message = 'Please log in to access this page.'
+
+@login_manager.user_loader
+def load_user(user_id):
+    return User.query.get(int(user_id))
+
+def get_linkedin_oauth():
+    return OAuth2Session(
+        LINKEDIN_CLIENT_ID,
+        redirect_uri=LINKEDIN_REDIRECT_URI,
+        scope=LINKEDIN_SCOPE
+    )
+
+@app.route('/login')
+def login():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    
+    linkedin = get_linkedin_oauth()
+    authorization_url, state = linkedin.authorization_url(LINKEDIN_AUTHORIZATION_URL)
+    
+    # Store the state for later validation
+    session['oauth_state'] = state
+    
+    return redirect(authorization_url)
+
+@app.route('/callback')
+def callback():
+    if current_user.is_authenticated:
+        return redirect(url_for('home'))
+    
+    try:
+        # Extract the authorization code from the callback URL
+        code = request.args.get('code')
+        if not code:
+            return "Authorization code not received", 400
+
+        # Use the authorization code to get the access token
+        token_payload = {
+            'grant_type': 'authorization_code',
+            'code': code,
+            'redirect_uri': LINKEDIN_REDIRECT_URI,
+            'client_id': LINKEDIN_CLIENT_ID,
+            'client_secret': LINKEDIN_CLIENT_SECRET
+        }
+
+        token_response = requests.post(LINKEDIN_TOKEN_URL, data=token_payload)
+        
+        if token_response.status_code != 200:
+            print(f"Token error: {token_response.status_code}, {token_response.text}")
+            return "Failed to obtain access token", 500
+            
+        token = token_response.json()
+        
+        # Get user info using the access token
+        headers = {'Authorization': f"Bearer {token['access_token']}"}
+        user_info_response = requests.get(LINKEDIN_USER_INFO_URL, headers=headers)
+        
+        if user_info_response.status_code != 200:
+            print(f"User info error: {user_info_response.status_code}, {user_info_response.text}")
+            return "Failed to obtain user information", 500
+            
+        user_info = user_info_response.json()
+        
+        # Extract user data
+        email = user_info.get('email')
+        linkedin_id = user_info.get('sub')
+        first_name = user_info.get('given_name')
+        last_name = user_info.get('family_name')
+        picture = user_info.get('picture')
+        
+        if not email:
+            return "Email information not available", 400
+        
+        # Create or update user in database
+        user = get_or_create_user(
+            email=email,
+            linkedin_id=linkedin_id,
+            first_name=first_name,
+            last_name=last_name,
+            profile_picture=picture
+        )
+        
+        # Log in the user with Flask-Login
+        login_user(user)
+        
+        return redirect(url_for('home'))
+    
+    except Exception as e:
+        print(f"Callback error: {str(e)}")
+        return f"Error during authentication: {str(e)}", 500
+
+@app.route('/logout')
+def logout():
+    logout_user()
+    # Clear session
+    session.clear()
+    return redirect(url_for('home'))
 
 @app.route('/')
 def home():
-    # In development mode, use the mock token if no token is provided
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    print(f"Received token from headers: {token}")
+    if current_user.is_authenticated:
+        return render_template('home.html', email=current_user.email, user=current_user)
     
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-        print(f"Using development mode token: {token}")
-    
-    if not token:
-        return render_template('home.html')
-    
-    try:
-        # Decode the JWT token without any verification
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-        
-        print(f"Decoded token contents: {decoded}")
-        
-        # Manual audience validation
-        token_aud = decoded.get('aud')
-        print(f"Token AUD: {token_aud}")
-        print(f"Expected AUD: {EXPECTED_AUD}")
-        
-        # Handle both string and array audiences
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return render_template('home.html', error="Invalid audience claim")
-        
-        # Extract email from the token and store in database
-        email = decoded.get('email', 'No email found')
-        get_or_create_user(email)
-        
-        return render_template('home.html', email=email)
-    
-    except Exception as e:
-        print(f"Error decoding token: {str(e)}")
-        return render_template('home.html', error=str(e))
+    return render_template('home.html')
 
 @app.route('/api/profile', methods=['GET'])
+@login_required
 def get_profile():
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-    
-    try:
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-                
-        # Validate audience
-        token_aud = decoded.get('aud')
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return jsonify({"error": "Invalid audience"}), 403
-            
-        email = decoded.get('email')
-        user = User.query.filter_by(email=email).first()
-        if user:
-            return jsonify(user.to_dict())
-        return jsonify({"error": "User not found"}), 404
-    except Exception as e:
-        return jsonify({"error": str(e)}), 400
+    return jsonify(current_user.to_dict())
 
 @app.route('/api/profile', methods=['PUT'])
+@login_required
 def update_profile():
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-    
     try:
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-                
-        # Validate audience
-        token_aud = decoded.get('aud')
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return jsonify({"error": "Invalid audience"}), 403
-            
-        email = decoded.get('email')
-        user = User.query.filter_by(email=email).first()
-        
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-        
         data = request.get_json()
         updateable_fields = ['full_name', 'phone', 'title', 'company', 'website', 'address', 'notes']
         
         for field in updateable_fields:
             if field in data:
-                setattr(user, field, data[field])
+                setattr(current_user, field, data[field])
         
         db.session.commit()
-        return jsonify(user.to_dict())
+        return jsonify(current_user.to_dict())
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 @app.route('/edit-card')
+@login_required
 def edit_card():
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-    
-    if not token:
-        return render_template('edit_card.html')
-    
-    try:
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-        
-        token_aud = decoded.get('aud')
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return render_template('edit_card.html', error="Invalid audience claim")
-        
-        email = decoded.get('email', 'No email found')
-        get_or_create_user(email)
-        
-        return render_template('edit_card.html', email=email)
-    
-    except Exception as e:
-        return render_template('edit_card.html', error=str(e))
+    return render_template('edit_card.html', email=current_user.email, user=current_user)
 
 @app.route('/api/preview-card')
+@login_required
 def preview_card_data():
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-    
     try:
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-        
-        token_aud = decoded.get('aud')
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return jsonify({"error": "Invalid audience claim"}), 403
-
-        email = decoded.get('email', 'No email found')
-        user = get_or_create_user(email)
-        
-        if not user:
-            return jsonify({"error": "User not found"}), 404
-            
         return jsonify({
-            "email": email,
-            "user": user.to_dict()
+            "email": current_user.email,
+            "user": current_user.to_dict()
         })
     
     except Exception as e:
         return jsonify({"error": str(e)}), 400
 
 @app.route('/preview-card')
+@login_required
 def preview_card():
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-    
-    if not token:
-        return render_template('preview_card.html')
-    
-    try:
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-        
-        token_aud = decoded.get('aud')
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return render_template('preview_card.html', error="Invalid audience claim")
-
-        email = decoded.get('email', 'No email found')
-        user = get_or_create_user(email)  # Make sure we have a user record
-        
-        if not user:
-            return render_template('preview_card.html', error="User not found")
-            
-        return render_template('preview_card.html', email=email, user=user)
-    
-    except Exception as e:
-        return render_template('preview_card.html', error=str(e))
+    return render_template('preview_card.html', email=current_user.email, user=current_user)
 
 @app.route('/download-vcf')
+@login_required
 def download_vcf():
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-    
     try:
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-        
-        token_aud = decoded.get('aud')
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return "Unauthorized", 403
-
-        email = decoded.get('email', 'No email found')
-        user = get_or_create_user(email)
-        
+        user = current_user
         if not user:
             return "User not found", 404
-
+            
         # Generate VCF content
         vcf_content = f"""BEGIN:VCARD
 VERSION:3.0
-FN:{user.full_name}
-N:{user.full_name};;;;
-TITLE:{user.title}
-ORG:{user.company}
-TEL;TYPE=WORK,VOICE:{user.phone}
-URL:{user.website}
-ADR;TYPE=WORK:;;{user.address};;;;
-NOTE:{user.notes}
+FN:{user.full_name or f"{user.first_name} {user.last_name}".strip()}
+N:{user.last_name or ""};{user.first_name or ""};;;
+TITLE:{user.title or ""}
+ORG:{user.company or ""}
+TEL;TYPE=WORK,VOICE:{user.phone or ""}
+URL:{user.website or ""}
+ADR;TYPE=WORK:;;{user.address or ""};;;;
+NOTE:{user.notes or ""}
 EMAIL:{user.email}
 END:VCARD"""
         
         # Create response with VCF content
         response = make_response(vcf_content)
         response.headers['Content-Type'] = 'text/vcard'
-        response.headers['Content-Disposition'] = f'attachment; filename="{user.full_name.replace(" ", "_")}.vcf"'
+        response.headers['Content-Disposition'] = f'attachment; filename="{(user.full_name or f"{user.first_name} {user.last_name}").replace(" ", "_")}.vcf"'
         return response
         
     except Exception as e:
         return str(e), 400
 
 @app.route('/qr-code')
+@login_required
 def qr_code():
-    token = request.headers.get('Cf-Access-Jwt-Assertion')
-    if FLASK_ENV == 'development' and not token:
-        token = DEV_MODE_TOKEN
-    
-    if not token:
-        return render_template('qr_code.html')
-    
     try:
-        decoded = jwt.decode(
-            token,
-            'dummy-key',
-            options={
-                "verify_signature": False,
-                "verify_aud": False,
-                "verify_exp": False,
-                "verify_iat": False,
-                "verify_nbf": False,
-                "verify_iss": False,
-                "verify_sub": False,
-                "verify_jti": False,
-                "verify_at_hash": False,
-            }
-        )
-        
-        token_aud = decoded.get('aud')
-        if isinstance(token_aud, list):
-            valid_aud = EXPECTED_AUD in token_aud
-        else:
-            valid_aud = token_aud == EXPECTED_AUD
-
-        if not token_aud or not valid_aud:
-            return render_template('qr_code.html', error="Invalid audience claim")
-
-        email = decoded.get('email', 'No email found')
-        user = get_or_create_user(email)
-        
+        user = current_user
         if not user:
             return render_template('qr_code.html', error="User not found")
         
         # Generate VCF content
         vcf_content = f"""BEGIN:VCARD
 VERSION:3.0
-FN:{user.full_name}
-N:{user.full_name};;;;
-TITLE:{user.title or ''}
-ORG:{user.company or ''}
-TEL;TYPE=WORK,VOICE:{user.phone or ''}
-URL:{user.website or ''}
-ADR;TYPE=WORK:;;{user.address or ''};;;;
-NOTE:{user.notes or ''}
+FN:{user.full_name or f"{user.first_name} {user.last_name}".strip()}
+N:{user.last_name or ""};{user.first_name or ""};;;
+TITLE:{user.title or ""}
+ORG:{user.company or ""}
+TEL;TYPE=WORK,VOICE:{user.phone or ""}
+URL:{user.website or ""}
+ADR;TYPE=WORK:;;{user.address or ""};;;;
+NOTE:{user.notes or ""}
 EMAIL:{user.email}
 END:VCARD"""
         
@@ -455,7 +267,7 @@ END:VCARD"""
         img.save(buffered, format="PNG")
         qr_image = base64.b64encode(buffered.getvalue()).decode()
             
-        return render_template('qr_code.html', email=email, user=user, qr_image=qr_image)
+        return render_template('qr_code.html', email=user.email, user=user, qr_image=qr_image)
     
     except Exception as e:
         return render_template('qr_code.html', error=str(e))

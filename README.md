@@ -9,7 +9,6 @@ A web-based digital business card solution that lets users create, edit and shar
 - Preview your card in a clean, professional format
 - Generate QR codes for easy sharing
 - Download contact information as VCF (vCard) file
-- Protected access through Cloudflare Zero Trust
 
 ## How to Access
 
@@ -28,7 +27,7 @@ A web-based digital business card solution that lets users create, edit and shar
 - SQLite database for user data storage
 - QR code generation for easy sharing
 - VCF (vCard) format support
-- Cloudflare Zero Trust for authentication
+- OAuth for secure authentication
 
 ### Local Development Setup
 
@@ -44,7 +43,7 @@ A web-based digital business card solution that lets users create, edit and shar
    ```
 4. Set up environment variables:
    - Copy `.env.example` to `.env`
-   - Configure your Cloudflare Access settings
+   - Configure your OAuth provider settings
 
 ### Docker Deployment
 
@@ -53,19 +52,8 @@ docker build -t digital-business-card .
 docker run -p 8080:8080 digital-business-card
 ```
 
-## Cloudflare Zero Trust Configuration
-
-1. In Cloudflare Zero Trust Dashboard:
-   - Go to Access -> Applications
-   - Create a new "Self-hosted" application
-   - Set application domain to card.runningdigitally.com
-   - Configure access policies as needed
-2. Enable "Service Auth" in the application settings
-3. Note your Application Audience (AUD) tag
-4. Update your environment variables with the AUD tag
-
 ## Security
 
-- All access is protected by Cloudflare Zero Trust
+- Secure authentication via OAuth providers
 - User data is stored securely in SQLite database
 - JWT token validation ensures secure authentication
