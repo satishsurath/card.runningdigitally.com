@@ -1,11 +1,21 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}Card Access{% endblock %}</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
     <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <script>
+        // Check for saved theme preference or default to light
+        if (localStorage.theme === 'dark' || 
+            (!('theme' in localStorage) && 
+             window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
 </head>
 <body class="bg-gray-100 min-h-screen">
     <nav class="bg-white shadow-lg">
@@ -36,77 +46,22 @@
                             <svg xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 -960 960 960" width="2em"><path d="M200-120q-33 0-56.5-23.5T120-200v-560q0-33 23.5-56.5T200-840h560q33 0 56.5 23.5T840-760v560q0 33-23.5 56.5T760-120H200Zm0-80h560v-480H200v480Zm280-80q-82 0-146.5-44.5T240-440q29-71 93.5-115.5T480-600q82 0 146.5 44.5T720-440q-29 71-93.5 115.5T480-280Zm0-60q56 0 102-26.5t72-73.5q-26-47-72-73.5T480-540q-56 0-102 26.5T306-440q26 47 72 73.5T480-340Zm0-100Zm0 60q25 0 42.5-17.5T540-440q0-25-17.5-42.5T480-500q-25 0-42.5 17.5T420-440q0 25 17.5 42.5T480-380Z"/></svg>
                         </a>
                         <a href="/download-vcf" class="text-gray-600 hover:text-gray-900">
-                            
-                            <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px"
-	 width="2em" height="2emx" viewBox="0 0 550.801 550.801" style="enable-background:new 0 0 550.801 550.801;"
-	 xml:space="preserve">
-<g>
-	<path d="M475.095,132c-0.032-2.529-0.833-5.023-2.568-6.993L366.324,3.694c-0.021-0.031-0.053-0.042-0.084-0.076
-		c-0.633-0.707-1.36-1.29-2.141-1.804c-0.232-0.15-0.465-0.285-0.707-0.419c-0.686-0.369-1.393-0.67-2.131-0.892
-		c-0.2-0.061-0.379-0.14-0.58-0.195C359.87,0.119,359.047,0,358.203,0H97.2C85.292,0,75.6,9.693,75.6,21.601v507.6
-		c0,11.913,9.692,21.601,21.6,21.601H453.6c11.918,0,21.601-9.688,21.601-21.601V133.207C475.2,132.804,475.137,132.398,475.095,132
-		z M186.677,513.19h-31.395l-38.106-118.905h29.46l14.468,50.282c4.061,14.106,7.765,27.695,10.584,42.514h0.535
-		c2.998-14.285,6.694-28.407,10.755-41.981l15.175-50.805h28.576L186.677,513.19z M298.898,492.724
-		c8.121,0,17.117-1.761,22.412-3.881l4.05,20.993c-4.936,2.474-16.052,5.121-30.512,5.121c-41.109,0-62.277-25.582-62.277-59.458
-		c0-40.574,28.927-63.149,64.918-63.149c13.938,0,24.521,2.821,29.283,5.289l-5.463,21.342c-5.474-2.294-13.057-4.403-22.581-4.403
-		c-21.347,0-37.932,12.878-37.932,39.34C260.798,477.731,274.909,492.724,298.898,492.724z M415.705,416.338h-45.689v27.164h42.688
-		v21.879h-42.688v47.81h-26.989V394.285h72.679V416.338z M97.2,366.758V21.605h250.203v110.519c0,5.961,4.831,10.8,10.8,10.8H453.6
-		l0.011,223.834H97.2z"/>
-	<g>
-		<path d="M236.121,230.494c-7.56-2.66-7.626-5.318-7.626-5.318c-0.772-0.74-1.534-1.355-2.294-1.938
-			c3.51-3.744,6.086-8.82,6.74-13.534c0.48-0.34,1.252-1.155,1.537-3.012c0,0,1.809-6.465-0.583-5.764
-			c0.82-2.483,3.602-12.176-1.748-18.204c0,0-2.513-3.428-8.604-5.241c0,0-9.142-2.874-16.493-1.016
-			c-7.354,1.864-7.53,3.381-9.555,10.368c0,0-1.519,3.617,0.49,14.212c-2.845-1.332-0.907,5.645-0.907,5.645
-			c0.29,1.862,1.073,2.671,1.537,3.012c0.585,4.796,2.972,9.655,6.13,13.283c-1.505,1.237-2.371,2.268-2.371,2.268l-16.318,8.583
-			c-4.461,1.727-6.347,4.303-6.347,4.303c-6.607,9.79-7.386,31.602-7.386,31.602c0.087,4.978,2.241,5.492,2.241,5.492
-			c15.19,6.779,39.008,7.986,39.008,7.986c24.479,0.512,42.293-6.95,42.293-6.95c2.576-1.635,2.658-2.927,2.658-2.927
-			c1.793-15.628-5.924-33.22-5.924-33.22C250.274,234.961,236.121,230.494,236.121,230.494z"/>
-		<path d="M394.854,149.624H161.979c-4.179,0-7.57,3.391-7.57,7.578v144.683c0,4.187,3.391,7.572,7.57,7.572h232.875
-			c4.177,0,7.573-3.386,7.573-7.572V157.201C402.427,153.015,399.041,149.624,394.854,149.624z M395.539,301.884
-			c0,0.38-0.306,0.69-0.686,0.69H161.979c-0.38,0-0.686-0.311-0.686-0.69V157.201c0-0.379,0.306-0.69,0.686-0.69h232.875
-			c0.38,0,0.686,0.311,0.686,0.69V301.884z"/>
-		<rect x="278.416" y="209.559" width="95.08" height="8.271"/>
-		<rect x="278.416" y="182.008" width="95.08" height="8.264"/>
-		<rect x="278.416" y="236.976" width="95.08" height="8.261"/>
-		<rect x="278.416" y="265.368" width="71.661" height="8.261"/>
-	</g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-<g>
-</g>
-</svg>
-
+                            <svg xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 -960 960 960" width="2em"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
                         </a>
                         <a href="/qr-code" class="text-gray-600 hover:text-gray-900">
                             <svg xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 -960 960 960" width="2em"><path d="M80-680v-200h200v80H160v120H80Zm0 600v-200h80v120h120v80H80Zm600 0v-80h120v-120h80v200H680Zm120-600v-120H680v-80h200v200h-80ZM700-260h60v60h-60v-60Zm0-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm120-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm240-320v240H520v-240h240ZM440-440v240H200v-240h240Zm0-320v240H200v-240h240Zm-60 500v-120H260v120h120Zm0-320v-120H260v120h120Zm320 0v-120H580v120h120Z"/></svg>
                         </a>
+                        <!-- Theme Toggle -->
+                        <button id="theme-toggle" class="theme-toggle text-gray-600 hover:text-gray-900" aria-label="Toggle dark/light mode">
+                            <!-- Sun Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="theme-icon sun" height="2em" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                            </svg>
+                            <!-- Moon Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="theme-icon moon" height="2em" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" />
+                            </svg>
+                        </button>
                     </div>
                 </div>
             </div>
@@ -119,6 +74,20 @@
                     <a href="/preview-card" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">Preview Card</a>
                     <a href="/download-vcf" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">Download VCF</a>
                     <a href="/qr-code" class="text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium">QR Code</a>
+                    <!-- Theme Toggle for Mobile -->
+                    <button id="mobile-theme-toggle" class="theme-toggle text-gray-600 hover:text-gray-900 px-3 py-2 rounded-md text-base font-medium flex items-center">
+                        <span>Toggle Dark/Light Mode</span>
+                        <div class="ml-2 relative w-5 h-5">
+                            <!-- Sun Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="theme-icon sun absolute inset-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zM18.894 6.166a.75.75 0 00-1.06-1.06l-1.591 1.59a.75.75 0 101.06 1.061l1.591-1.59zM21.75 12a.75.75 0 01-.75.75h-2.25a.75.75 0 010-1.5H21a.75.75 0 01.75.75zM17.834 18.894a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 10-1.061 1.06l1.59 1.591zM12 18a.75.75 0 01.75.75V21a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zM7.758 17.303a.75.75 0 00-1.061-1.06l-1.591 1.59a.75.75 0 001.06 1.061l1.591-1.59zM6 12a.75.75 0 01-.75.75H3a.75.75 0 010-1.5h2.25A.75.75 0 016 12zM6.697 7.757a.75.75 0 001.06-1.06l-1.59-1.591a.75.75 0 00-1.061 1.06l1.59 1.591z" />
+                            </svg>
+                            <!-- Moon Icon -->
+                            <svg xmlns="http://www.w3.org/2000/svg" class="theme-icon moon absolute inset-0" viewBox="0 0 24 24" fill="currentColor">
+                                <path fill-rule="evenodd" d="M9.528 1.718a.75.75 0 01.162.819A8.97 8.97 0 009 6a9 9 0 009 9 8.97 8.97 0 003.463-.69.75.75 0 01.981.98 10.503 10.503 0 01-9.694 6.46c-5.799 0-10.5-4.701-10.5-10.5 0-4.368 2.667-8.112 6.46-9.694a.75.75 0 01.818.162z" clip-rule="evenodd" />
+                            </svg>
+                        </div>
+                    </button>
                 </div>
             </div>
         </div>
@@ -146,6 +115,41 @@
                 svg.innerHTML = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />';
             }
         });
+
+        // Theme toggle functionality
+        const themeToggleBtn = document.getElementById('theme-toggle');
+        const mobileThemeToggleBtn = document.getElementById('mobile-theme-toggle');
+        
+        // Set initial toggle state based on current theme
+        function updateToggleState() {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            themeToggleBtn.classList.toggle('dark-mode', isDarkMode);
+            themeToggleBtn.classList.toggle('light-mode', !isDarkMode);
+            mobileThemeToggleBtn.classList.toggle('dark-mode', isDarkMode);
+            mobileThemeToggleBtn.classList.toggle('light-mode', !isDarkMode);
+        }
+        
+        // Toggle theme function
+        function toggleTheme() {
+            const isDarkMode = document.documentElement.classList.contains('dark');
+            
+            if (isDarkMode) {
+                document.documentElement.classList.remove('dark');
+                localStorage.theme = 'light';
+            } else {
+                document.documentElement.classList.add('dark');
+                localStorage.theme = 'dark';
+            }
+            
+            updateToggleState();
+        }
+        
+        // Initialize toggle state
+        updateToggleState();
+        
+        // Add event listeners to toggle buttons
+        themeToggleBtn.addEventListener('click', toggleTheme);
+        mobileThemeToggleBtn.addEventListener('click', toggleTheme);
     </script>
 </body>
 </html>

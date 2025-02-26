@@ -46,3 +46,159 @@
 .contact-info svg {
     opacity: 0.75;
 }
+
+/* Dark Mode Styles */
+.dark {
+    color-scheme: dark;
+}
+
+.dark body {
+    background-color: #1a1a1a;
+    color: #e2e2e2;
+}
+
+.dark .bg-white {
+    background-color: #2a2a2a !important;
+}
+
+.dark .bg-gray-100 {
+    background-color: #1a1a1a !important;
+}
+
+.dark .text-gray-600,
+.dark .text-gray-700,
+.dark .text-gray-800 {
+    color: #e2e2e2 !important;
+}
+
+.dark .text-gray-900 {
+    color: #ffffff !important;
+}
+
+.dark .shadow-lg {
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.4), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
+.dark .business-card {
+    background: linear-gradient(145deg, #2a2a2a 0%, #1a1a1a 100%);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    box-shadow: 
+        0 1px 3px rgba(0,0,0,0.5),
+        0 1px 2px rgba(0,0,0,0.6),
+        0 0 0 1px rgba(255,255,255,0.04) inset;
+}
+
+.dark .card-content {
+    background-image: 
+        radial-gradient(circle at 100% 100%, rgba(255,255,255,0.02) 0%, transparent 50%),
+        radial-gradient(circle at 0% 0%, rgba(255,255,255,0.05) 0%, transparent 50%);
+}
+
+.dark .contact-info {
+    color: #d1d5db;
+}
+
+.dark .border-gray-300 {
+    border-color: #4a5568 !important;
+}
+
+.dark input::placeholder,
+.dark textarea::placeholder {
+    color: #9ca3af !important;
+    opacity: 0.8 !important;
+}
+
+.dark input:focus,
+.dark textarea:focus {
+    border-color: #34d399 !important;
+    box-shadow: 0 0 0 1px rgba(52, 211, 153, 0.5) !important;
+}
+
+.dark .focus\:ring-green-500:focus {
+    --tw-ring-color: rgba(52, 211, 153, 0.5) !important;
+}
+
+.dark .focus\:border-green-500:focus {
+    border-color: #34d399 !important;
+}
+
+/* Fix for SVG icons in dark mode */
+.dark nav svg {
+    fill: #e2e2e2;
+}
+
+.dark a.text-gray-600 {
+    color: #e2e2e2 !important;
+}
+
+.dark a.text-gray-600:hover {
+    color: #ffffff !important;
+}
+
+.dark label.text-gray-700 {
+    color: #e2e2e2 !important;
+}
+
+/* Form improvements for dark mode */
+.dark input, 
+.dark textarea {
+    color: #ffffff !important;
+    background-color: #374151 !important;
+    border-color: #4b5563 !important;
+}
+
+/* Theme Toggle Animation */
+.theme-toggle {
+    cursor: pointer;
+    transition: transform 0.3s ease;
+}
+
+/* Only apply hover rotation to desktop toggle */
+@media (min-width: 768px) {
+    .theme-toggle:hover {
+        transform: rotate(15deg);
+    }
+}
+
+/* Remove the hover transform for mobile to prevent spinning */
+#mobile-theme-toggle:hover {
+    transform: none;
+}
+
+.theme-toggle svg {
+    transition: fill 0.3s ease, transform 0.5s ease;
+}
+
+.theme-toggle.dark-mode svg.sun {
+    transform: rotate(180deg) scale(0);
+    opacity: 0;
+    position: absolute;
+}
+
+.theme-toggle.light-mode svg.moon {
+    transform: rotate(-180deg) scale(0);
+    opacity: 0;
+    position: absolute;
+}
+
+.theme-icon {
+    transition: transform 0.5s ease, opacity 0.3s ease;
+}
+
+/* Mobile theme toggle specific styles */
+#mobile-theme-toggle.dark-mode svg.sun, 
+#mobile-theme-toggle.light-mode svg.moon {
+    width: 20px;
+    height: 20px;
+}
+
+#mobile-theme-toggle .relative {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#mobile-theme-toggle svg {
+    width: 20px;
+    height: 20px;
+}

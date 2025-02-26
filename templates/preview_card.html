@@ -6,9 +6,9 @@
         <div class="card-content p-6 flex flex-col justify-between h-full">
             <!-- Top Section -->
             <div>
-                <h1 id="full-name" class="text-xl font-bold text-gray-800 mb-1">Loading...</h1>
-                <p id="title" class="text-sm text-gray-600"></p>
-                <p id="company" class="text-sm font-semibold text-green-600 mt-1"></p>
+                <h1 id="full-name" class="text-xl font-bold text-gray-800 dark:text-gray-100 mb-1">Loading...</h1>
+                <p id="title" class="text-sm text-gray-600 dark:text-gray-400"></p>
+                <p id="company" class="text-sm font-semibold text-green-600 dark:text-green-400 mt-1"></p>
             </div>
             <!-- Bottom Section -->
             <div class="contact-info space-y-1.5 mt-4">
@@ -36,27 +36,28 @@
     </div>
 
     <!-- Notes Section -->
-    <div id="notes-section" class="mt-8 bg-white rounded-lg shadow p-6 hidden">
-        <h2 class="text-lg font-semibold text-gray-800 mb-2">Additional Notes</h2>
-        <p id="notes-text" class="text-gray-600"></p>
+    <div id="notes-section" class="mt-8 bg-white dark:bg-gray-800 rounded-lg shadow p-6 hidden">
+        <h2 class="text-lg font-semibold text-gray-800 dark:text-gray-100 mb-2">Additional Notes</h2>
+        <p id="notes-text" class="text-gray-600 dark:text-gray-300"></p>
     </div>
 
     <!-- Error Message -->
-    <div id="error-message" class="mt-8 text-center text-red-600"></div>
+    <div id="error-message" class="mt-8 text-center text-red-600 dark:text-red-400"></div>
 
     <!-- Action Buttons -->
     <div class="text-center mt-8 space-x-4">
-        <a href="/edit-card" class="inline-flex items-center justify-center w-16 h-16 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+        <a href="/edit-card" class="inline-flex items-center justify-center w-16 h-16 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
             <svg xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 -960 960 960" width="2em"><path d="M200-200h57l391-391-57-57-391 391v57Zm-80 80v-170l528-527q12-11 26.5-17t30.5-6q16 0 31 6t26 18l55 56q12 11 17.5 26t5.5 30q0 16-5.5 30.5T817-647L290-120H120Zm640-584-56-56 56 56Zm-141 85-28-29 57 57-29-28Z"/></svg>
+            <span>Edit Card</span>
         </a>
-        <a href="/qr-code" class="inline-flex items-center justify-center w-16 h-16 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2">
+        <a href="/qr-code" class="inline-flex items-center justify-center w-16 h-16 bg-green-600 text-white py-2 px-4 rounded-md hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
             <svg xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 -960 960 960" width="2em"><path d="M80-680v-200h200v80H160v120H80Zm0 600v-200h80v120h120v80H80Zm600 0v-80h120v-120h80v200H680Zm120-600v-120H680v-80h200v200h-80ZM700-260h60v60h-60v-60Zm0-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm120-120h60v60h-60v-60Zm-60 60h60v60h-60v-60Zm-60-60h60v60h-60v-60Zm240-320v240H520v-240h240ZM440-440v240H200v-240h240Zm0-320v240H200v-240h240Zm-60 500v-120H260v120h120Zm0-320v-120H260v120h120Zm320 0v-120H580v120h120Z"/></svg>
+            <span>QR Code</span>
         </a>        
-        <a href="/download-vcf" class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+        <a href="/download-vcf" class="inline-flex items-center justify-center w-16 h-16 bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 dark:focus:ring-offset-gray-800">
             <div class="flex items-center space-x-1">
                 <svg xmlns="http://www.w3.org/2000/svg" height="2em" viewBox="0 -960 960 960" width="2em"><path d="M480-320 280-520l56-58 104 104v-326h80v326l104-104 56 58-200 200ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z"/></svg>
-                <svg version="1.1" id="Capa_1" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" x="0px" y="0px" width="2em" height="2em" viewBox="0 0 550.801 550.801" style="enable-background:new 0 0 550.801 550.801;" xml:space="preserve" >
-                    <g><path d="M475.095,132c-0.032-2.529-0.833-5.023-2.568-6.993L366.324,3.694c-0.021-0.031-0.053-0.042-0.084-0.076 c-0.633-0.707-1.36-1.29-2.141-1.804c-0.232-0.15-0.465-0.285-0.707-0.419c-0.686-0.369-1.393-0.67-2.131-0.892 c-0.2-0.061-0.379-0.14-0.58-0.195C359.87,0.119,359.047,0,358.203,0H97.2C85.292,0,75.6,9.693,75.6,21.601v507.6 c0,11.913,9.692,21.601,21.6,21.601H453.6c11.918,0,21.601-9.688,21.601-21.601V133.207C475.2,132.804,475.137,132.398,475.095,132 z M186.677,513.19h-31.395l-38.106-118.905h29.46l14.468,50.282c4.061,14.106,7.765,27.695,10.584,42.514h0.535 c2.998-14.285,6.694-28.407,10.755-41.981l15.175-50.805h28.576L186.677,513.19z M298.898,492.724 c8.121,0,17.117-1.761,22.412-3.881l4.05,20.993c-4.936,2.474-16.052,5.121-30.512,5.121c-41.109,0-62.277-25.582-62.277-59.458 c0-40.574,28.927-63.149,64.918-63.149c13.938,0,24.521,2.821,29.283,5.289l-5.463,21.342c-5.474-2.294-13.057-4.403-22.581-4.403 c-21.347,0-37.932,12.878-37.932,39.34C260.798,477.731,274.909,492.724,298.898,492.724z M415.705,416.338h-45.689v27.164h42.688 v21.879h-42.688v47.81h-26.989V394.285h72.679V416.338z M97.2,366.758V21.605h250.203v110.519c0,5.961,4.831,10.8,10.8,10.8H453.6 l0.011,223.834H97.2z"/></g></svg>
+                <span>Download VCF</span>
             </div>
         </a>
     </div>
