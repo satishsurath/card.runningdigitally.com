@@ -56,4 +56,3 @@ docker run -p 8080:8080 digital-business-card
 
 - Secure authentication via OAuth providers
 - User data is stored securely in SQLite database
-- JWT token validation ensures secure authentication
